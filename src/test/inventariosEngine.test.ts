@@ -1,10 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
+  bestQuantityDiscountPlan,
   buildInventoryBreakdown,
   createInventoryBundle,
+  evaluateQuantityDiscount,
   modelFormula,
   optimalLotSize,
   optimalTotalCost,
+  reorderPointRandomDemand,
 } from '../features/sala-3-inventarios/inventariosEngine'
 
 describe('inventariosEngine', () => {
@@ -51,15 +54,192 @@ describe('inventariosEngine', () => {
     expect(uniform.totalCost).toBe(5499.11)
   })
 
-  it('genera un bundle con ejercicios distintos para clasificar y calcular', () => {
-    vi.spyOn(Math, 'random')
-      .mockReturnValueOnce(0)
-      .mockReturnValueOnce(0)
-      .mockReturnValueOnce(0)
+  it('resuelve demanda aleatoria con punto de pedido', () => {
+    expect(reorderPointRandomDemand({
+      prompt: 'Aleatoria',
+      annualDemand: 9500,
+      orderCost: 850,
+      holdingCost: 5,
+      meanDailyDemand: 32,
+      stdDailyDemand: 6,
+      leadTimeDays: 7,
+      zValue: 1.28,
+      sourceId: 'inventarios-cep',
+    })).toBe(244.32)
+  })
+
+  it('calcula lote y desglose para escenario de demanda aleatoria', () => {
+    const randomScenario = {
+      model: 'demanda-aleatoria' as const,
+      prompt: 'Aleatoria',
+      demand: 9500,
+      orderCost: 850,
+      holdingCost: 5,
+      meanDailyDemand: 32,
+      stdDailyDemand: 6,
+      leadTimeDays: 7,
+      zValue: 1.28,
+      sourceId: 'inventarios-cep',
+    }
+
+    expect(optimalLotSize(randomScenario)).toBe(1797.22)
+    const breakdown = buildInventoryBreakdown(randomScenario)
+    expect(breakdown.reorderPoint).toBe(244.32)
+    expect(breakdown.safetyStock).toBe(20.32)
+    expect(breakdown.totalCost).toBeGreaterThan(0)
+  })
+
+  it('elige el mejor tramo en descuento por cantidad', () => {
+    const plan = bestQuantityDiscountPlan({
+      prompt: 'Descuentos',
+      annualDemand: 12000,
+      orderCost: 600,
+      carryingRate: 0.22,
+      tiers: [
+        { minQty: 1, unitCost: 48 },
+        { minQty: 300, unitCost: 45 },
+        { minQty: 700, unitCost: 42 },
+      ],
+      sourceId: 'inventarios-cep',
+    })
+
+    expect(plan.minQty).toBe(700)
+    expect(plan.unitCost).toBe(42)
+  })
+
+  it('calcula desglose para descuento por cantidad con costo de compra', () => {
+    const breakdown = buildInventoryBreakdown({
+      model: 'descuento-cantidad',
+      prompt: 'Descuento',
+      demand: 12000,
+      orderCost: 600,
+      holdingCost: 10,
+      carryingRate: 0.22,
+      discountTiers: [
+        { minQty: 1, unitCost: 48 },
+        { minQty: 300, unitCost: 45 },
+        { minQty: 700, unitCost: 42 },
+      ],
+      sourceId: 'inventarios-cep',
+    })
+
+    expect(breakdown.purchaseCost).toBeGreaterThan(0)
+    expect(breakdown.totalCost).toBeGreaterThan(breakdown.purchaseCost)
+  })
+
+  it('marca tramos factibles e infactibles en descuento', () => {
+    const plan = evaluateQuantityDiscount({
+      prompt: 'Tramos',
+      annualDemand: 12000,
+      orderCost: 600,
+      carryingRate: 0.22,
+      tiers: [
+        { minQty: 1, unitCost: 48 },
+        { minQty: 300, unitCost: 45 },
+        { minQty: 700, unitCost: 42 },
+      ],
+      sourceId: 'inventarios-cep',
+    })
+
+    expect(plan.candidates.some((candidate) => candidate.feasibleInTier)).toBe(true)
+    expect(plan.candidates.some((candidate) => !candidate.feasibleInTier)).toBe(true)
+  })
+
+  it('cubre fórmulas de todos los modelos', () => {
+    expect(modelFormula({
+      model: 'sin-ruptura',
+      prompt: '',
+      demand: 1,
+      orderCost: 1,
+      holdingCost: 1,
+      sourceId: 'inventarios-cep',
+    })).toContain('sqrt(2DS/H)')
+
+    expect(modelFormula({
+      model: 'con-ruptura',
+      prompt: '',
+      demand: 1,
+      orderCost: 1,
+      holdingCost: 1,
+      sourceId: 'inventarios-cep',
+    })).toContain('(H+P)')
+
+    expect(modelFormula({
+      model: 'reabastecimiento-uniforme',
+      prompt: '',
+      demand: 1,
+      orderCost: 1,
+      holdingCost: 1,
+      sourceId: 'inventarios-reab',
+    })).toContain('p/(p-d)')
+
+    expect(modelFormula({
+      model: 'demanda-aleatoria',
+      prompt: '',
+      demand: 1,
+      orderCost: 1,
+      holdingCost: 1,
+      sourceId: 'inventarios-cep',
+    })).toContain('R = dL')
+
+    expect(modelFormula({
+      model: 'descuento-cantidad',
+      prompt: '',
+      demand: 1,
+      orderCost: 1,
+      holdingCost: 1,
+      sourceId: 'inventarios-cep',
+    })).toContain('CT = DC')
+  })
+
+  it('usa fallback de parámetros opcionales sin romper cálculos', () => {
+    const ruptureFallback = optimalLotSize({
+      model: 'con-ruptura',
+      prompt: '',
+      demand: 1200,
+      orderCost: 500,
+      holdingCost: 4,
+      sourceId: 'inventarios-cep',
+    })
+    const uniformFallback = optimalLotSize({
+      model: 'reabastecimiento-uniforme',
+      prompt: '',
+      demand: 1200,
+      orderCost: 500,
+      holdingCost: 4,
+      sourceId: 'inventarios-reab',
+    })
+    const discountFallback = buildInventoryBreakdown({
+      model: 'descuento-cantidad',
+      prompt: '',
+      demand: 1200,
+      orderCost: 500,
+      holdingCost: 4,
+      sourceId: 'inventarios-cep',
+    })
+
+    expect(ruptureFallback).toBeGreaterThan(0)
+    expect(uniformFallback).toBeGreaterThan(0)
+    expect(discountFallback.purchaseCost).toBeGreaterThanOrEqual(0)
+  })
+
+  it('genera bundle cuando clasificación y cálculo coinciden y cuando no coinciden', () => {
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
 
     const bundle = createInventoryBundle()
 
     expect(bundle.classification.prompt).not.toBe(bundle.calculation.prompt)
-    expect(bundle.ruptureDecision.answer).toBe('Conviene analizar ruptura')
+    expect(bundle.randomDemandExercise.meanDailyDemand).toBeGreaterThan(0)
+    expect(bundle.quantityDiscountExercise.tiers.length).toBeGreaterThan(1)
+
+    randomSpy
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(0.4)
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(0)
+    const bundleNoCollision = createInventoryBundle()
+    expect(bundleNoCollision.classification.prompt).not.toBe('')
+    expect(bundleNoCollision.calculation.prompt).not.toBe('')
   })
 })

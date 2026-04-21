@@ -5,11 +5,8 @@ import { SalaInventarios } from '../features/sala-3-inventarios/SalaInventarios'
 import { optimalLotSize, optimalTotalCost } from '../features/sala-3-inventarios/inventariosEngine'
 
 describe('SalaInventarios', () => {
-  it('guía la clasificación, el cálculo y el criterio de ruptura', async () => {
-    vi.spyOn(Math, 'random')
-      .mockReturnValueOnce(0)
-      .mockReturnValueOnce(0)
-      .mockReturnValueOnce(0)
+  it('guía clasificación, cálculo, aleatoria y descuento por cantidad', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
 
     const lot = optimalLotSize({
       model: 'sin-ruptura',
@@ -52,6 +49,13 @@ describe('SalaInventarios', () => {
     await user.click(screen.getByRole('button', { name: /validar respuesta/i }))
 
     await user.click(screen.getByRole('button', { name: /conviene analizar ruptura/i }))
+    await user.click(screen.getByRole('button', { name: /validar respuesta/i }))
+
+    await user.clear(screen.getByPlaceholderText(/escribí el valor/i))
+    await user.type(screen.getByPlaceholderText(/escribí el valor/i), '244.32')
+    await user.click(screen.getByRole('button', { name: /validar respuesta/i }))
+
+    await user.click(screen.getByRole('button', { name: /desde 700 u\. \(c=42\)/i }))
     await user.click(screen.getByRole('button', { name: /validar respuesta/i }))
 
     expect(onResolve).toHaveBeenLastCalledWith(expect.objectContaining({
