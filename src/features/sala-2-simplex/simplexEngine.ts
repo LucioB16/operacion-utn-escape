@@ -1,3 +1,5 @@
+import type { LP, Options, Result } from 'glpk.js'
+
 type OptimizationDirection = 'max' | 'min'
 
 interface SimplexRow {
@@ -33,6 +35,28 @@ export interface SensitivityScenario {
   deltaOutside: number
 }
 
+export interface SensitivityGlpkVerification {
+  baseObjective: number
+  projectedObjective: number
+  impliedShadowPrice: number
+  expectedBaseObjective: number
+  expectedProjectedObjective: number
+  expectedShadowPrice: number
+  matchesBaseObjective: boolean
+  matchesProjectedObjective: boolean
+  matchesShadowPrice: boolean
+}
+
+interface GlpkLike {
+  GLP_MAX: number
+  GLP_UP: number
+  GLP_LO: number
+  GLP_MSG_OFF: number
+  solve: (lp: LP, options?: number | Options) => Result | Promise<Result>
+}
+
+export type GlpkFactory = () => Promise<GlpkLike>
+
 export interface SimplexRoomScenario {
   iteration: SimplexTableau
   sensitivity: SensitivityScenario
@@ -42,6 +66,10 @@ const EPSILON = 1e-9
 
 function round2(value: number) {
   return Math.round(value * 100) / 100
+}
+
+function round6(value: number) {
+  return Math.round(value * 1_000_000) / 1_000_000
 }
 
 export function objectiveValue(tableau: SimplexTableau) {
@@ -195,6 +223,97 @@ export function projectObjective(scenario: SensitivityScenario, delta: number) {
 export function basisChanges(scenario: SensitivityScenario, delta: number) {
   const range = deltaRange(scenario)
   return delta < range.min - EPSILON || delta > range.max + EPSILON
+}
+
+function invert2x2(matrix: number[][]) {
+  const [[a, b], [c, d]] = matrix
+  const determinant = a * d - b * c
+
+  if (Math.abs(determinant) < EPSILON) {
+    throw new Error('La matriz de base no es invertible.')
+  }
+
+  return [
+    [d / determinant, -b / determinant],
+    [-c / determinant, a / determinant],
+  ]
+}
+
+function multiplyMatrixVector(matrix: number[][], vector: number[]) {
+  return matrix.map((row) => row.reduce((total, value, index) => total + value * vector[index], 0))
+}
+
+function multiplyRowVectorMatrix(vector: number[], matrix: number[][]) {
+  return matrix[0].map((_, columnIndex) => (
+    vector.reduce((total, value, rowIndex) => total + value * matrix[rowIndex][columnIndex], 0)
+  ))
+}
+
+function createSensitivityLp(scenario: SensitivityScenario, rhsDelta = 0, glpk: GlpkLike): LP {
+  const basisMatrix = invert2x2(scenario.basisInverse)
+  const baseRhs = multiplyMatrixVector(basisMatrix, scenario.basicSolution)
+  const objective = multiplyRowVectorMatrix(scenario.shadowPrices, basisMatrix)
+  const rhs = baseRhs.map((value, index) => (
+    index === scenario.resourceIndex ? value + rhsDelta : value
+  ))
+
+  return {
+    name: `sensibilidad-${scenario.rhsLabels[scenario.resourceIndex]}`,
+    objective: {
+      direction: glpk.GLP_MAX,
+      name: 'Z',
+      vars: scenario.basicLabels.map((label, index) => ({
+        name: label,
+        coef: objective[index],
+      })),
+    },
+    subjectTo: basisMatrix.map((row, index) => ({
+      name: scenario.rhsLabels[index],
+      vars: scenario.basicLabels.map((label, columnIndex) => ({
+        name: label,
+        coef: row[columnIndex],
+      })),
+      bnds: { type: glpk.GLP_UP, ub: rhs[index], lb: 0 },
+    })),
+    bounds: scenario.basicLabels.map((label) => ({
+      name: label,
+      type: glpk.GLP_LO,
+      lb: 0,
+      ub: 0,
+    })),
+  }
+}
+
+async function createBrowserGlpk(): Promise<GlpkLike> {
+  const { default: GLPKFactory } = await import('glpk.js')
+  return GLPKFactory()
+}
+
+export async function verifySensitivityWithGlpk(
+  scenario: SensitivityScenario,
+  createGlpk: GlpkFactory = createBrowserGlpk,
+): Promise<SensitivityGlpkVerification> {
+  const glpk = await createGlpk()
+  const baseResult = await glpk.solve(createSensitivityLp(scenario, 0, glpk), { msglev: glpk.GLP_MSG_OFF })
+  const projectedResult = await glpk.solve(createSensitivityLp(scenario, scenario.deltaInside, glpk), { msglev: glpk.GLP_MSG_OFF })
+  const baseObjective = round6(baseResult.result.z)
+  const projectedObjective = round6(projectedResult.result.z)
+  const expectedBaseObjective = round6(scenario.baseObjective)
+  const expectedProjectedObjective = round6(projectObjective(scenario, scenario.deltaInside))
+  const impliedShadowPrice = round6((projectedObjective - baseObjective) / scenario.deltaInside)
+  const expectedShadowPrice = round6(scenario.shadowPrices[scenario.resourceIndex])
+
+  return {
+    baseObjective,
+    projectedObjective,
+    impliedShadowPrice,
+    expectedBaseObjective,
+    expectedProjectedObjective,
+    expectedShadowPrice,
+    matchesBaseObjective: Math.abs(baseObjective - expectedBaseObjective) <= 0.05,
+    matchesProjectedObjective: Math.abs(projectedObjective - expectedProjectedObjective) <= 0.05,
+    matchesShadowPrice: Math.abs(impliedShadowPrice - expectedShadowPrice) <= 0.05,
+  }
 }
 
 const scenarioPairs: SimplexRoomScenario[] = [

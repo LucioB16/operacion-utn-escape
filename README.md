@@ -22,7 +22,7 @@ El proyecto está basado en el corpus local de `C:\Users\lucio\repos\IOP` y mant
 - 📊 Estadísticas y top local persistidos solamente en el browser con `localStorage`.
 - 🧠 Sala 2 de Simplex y Sensibilidad como prueba de concepto más profunda.
 - 📦 Inventarios con CEP sin ruptura, con ruptura, reabastecimiento uniforme, demanda aleatoria y descuentos por cantidad.
-- 🔎 Verificación externa con `glpk.js` para PL y `@dagrejs/graphlib` para redes.
+- 🔎 Verificación externa con `glpk.js` para PL/sensibilidad y `@dagrejs/graphlib` para redes.
 - ✅ CI con lint, build, coverage y tabla legible de tests en GitHub Actions.
 
 ## 🧭 Salas
@@ -77,7 +77,7 @@ La lógica matemática vive en funciones puras TypeScript, separada de React. La
 Los ejercicios son **generados desde pools parametrizados**, no son pantallas fijas hardcodeadas. Cada sala selecciona escenarios desde datos representativos del corpus y resuelve con funciones propias del proyecto.
 
 - Simplex, inventarios, pronósticos y redes se calculan con motores TypeScript propios.
-- `glpk.js` se usa como verificador paralelo en PL, sin reemplazar la lógica pedagógica.
+- `glpk.js` se usa como verificador paralelo en PL y sensibilidad, sin reemplazar la lógica pedagógica.
 - `@dagrejs/graphlib` se usa como contraste de robustez para Dijkstra y árbol mínimo.
 - Las respuestas decimales aceptan tolerancia de `±0.05`.
 

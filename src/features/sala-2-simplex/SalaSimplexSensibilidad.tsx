@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createScoreDelta } from '../../game/core/scoring'
 import type { FeedbackMessage, RoomComponentProps, RoomResolution } from '../../game/core/types'
 import { withinTolerance } from '../../game/utils/tolerance'
@@ -11,6 +11,8 @@ import {
   objectiveValue,
   projectBasicSolution,
   projectObjective,
+  verifySensitivityWithGlpk,
+  type SensitivityGlpkVerification,
 } from './simplexEngine'
 
 function formatNumber(value: number) {
@@ -34,6 +36,27 @@ export function SalaSimplexSensibilidad({ disabled, gameMode, onResolve }: RoomC
   const [selectedChoice, setSelectedChoice] = useState('')
   const [numericAnswer, setNumericAnswer] = useState('')
   const [feedback, setFeedback] = useState<FeedbackMessage | null>(null)
+  const [externalVerification, setExternalVerification] = useState<SensitivityGlpkVerification | null>(null)
+
+  useEffect(() => {
+    let active = true
+
+    verifySensitivityWithGlpk(scenario.sensitivity)
+      .then((verification) => {
+        if (active) {
+          setExternalVerification(verification)
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setExternalVerification(null)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [scenario])
 
   const iteration = analyzeIteration(scenario.iteration)
   const nextTableau = iteration.nextTableau
@@ -373,6 +396,13 @@ export function SalaSimplexSensibilidad({ disabled, gameMode, onResolve }: RoomC
             <span className="chip">Precio sombra: {formatNumber(scenario.sensitivity.shadowPrices[scenario.sensitivity.resourceIndex])}</span>
             <span className="chip">Δ interno: {formatNumber(scenario.sensitivity.deltaInside)}</span>
             <span className="chip">Δ externo: {formatNumber(scenario.sensitivity.deltaOutside)}</span>
+            <span className="chip">
+              Verificador GLPK sensibilidad: {externalVerification?.matchesBaseObjective
+                && externalVerification.matchesProjectedObjective
+                && externalVerification.matchesShadowPrice
+                ? 'OK'
+                : 'calculando'}
+            </span>
           </div>
         </article>
 

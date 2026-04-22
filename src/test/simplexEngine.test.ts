@@ -7,6 +7,7 @@ import {
   objectiveValue,
   projectBasicSolution,
   projectObjective,
+  verifySensitivityWithGlpk,
 } from '../features/sala-2-simplex/simplexEngine'
 
 describe('simplexEngine', () => {
@@ -31,5 +32,18 @@ describe('simplexEngine', () => {
     expect(projectBasicSolution(scenario.sensitivity, 15)).toEqual([25, 5])
     expect(projectObjective(scenario.sensitivity, 15)).toBe(1150)
     expect(basisChanges(scenario.sensitivity, 25)).toBe(true)
+  })
+
+  it('contrasta sensibilidad con GLPK.js como verificador externo', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    const scenario = createSimplexRoomScenario()
+    const { default: GLPKFactory } = await import('glpk.js/node')
+    const verification = await verifySensitivityWithGlpk(scenario.sensitivity, GLPKFactory)
+
+    expect(verification.matchesBaseObjective).toBe(true)
+    expect(verification.matchesProjectedObjective).toBe(true)
+    expect(verification.matchesShadowPrice).toBe(true)
+    expect(verification.projectedObjective).toBeCloseTo(1150, 2)
+    expect(verification.impliedShadowPrice).toBeCloseTo(10, 2)
   })
 })
