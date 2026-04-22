@@ -21,7 +21,7 @@ El proyecto está basado en el corpus local de `C:\Users\lucio\repos\IOP` y mant
 - 🧪 Modo entrenamiento libre sin temporizador.
 - 📊 Estadísticas y top local persistidos solamente en el browser con `localStorage`.
 - 🧠 Sala 2 de Simplex y Sensibilidad como prueba de concepto más profunda.
-- 📦 Inventarios con CEP sin ruptura, con ruptura, reabastecimiento uniforme, demanda aleatoria y descuentos por cantidad.
+- 📦 Inventarios con CEP sin ruptura, con ruptura, reabastecimiento uniforme, punto de pedido, pedido único con demanda aleatoria y descuentos por cantidad.
 - 🔎 Verificación externa con `glpk.js` para PL/sensibilidad y `@dagrejs/graphlib` para redes.
 - ✅ CI con lint, build, coverage y tabla legible de tests en GitHub Actions.
 
@@ -31,7 +31,7 @@ El proyecto está basado en el corpus local de `C:\Users\lucio\repos\IOP` y mant
 |---|---|---|
 | 1 | PL gráfica | región factible, vértice óptimo, lectura dual aplicada |
 | 2 | Simplex + sensibilidad | `Cj - Zj`, entra/sale, `theta`, pivote, precio sombra, nuevo `Z` |
-| 3 | Inventarios | modelos CEP, ruptura, reabastecimiento, demanda aleatoria, descuentos |
+| 3 | Inventarios | modelos CEP, ruptura, reabastecimiento, punto de pedido, pedido único aleatorio, descuentos |
 | 4 | Pronósticos | promedio móvil, ponderado, suavizado, errores, `MAD`, estacionalidad |
 | 5 | Redes | árbol, AEM, Kruskal, Dijkstra, camino de valor mínimo |
 
@@ -45,9 +45,13 @@ Se priorizaron fuentes del workspace alineadas al examen:
 - `Material de estudio/3. Dualidad y sensibilidad.pdf`
 - `Material de estudio/Modelos CEP y con Ruptura.pdf`
 - `Material de estudio/Modelos con Reab Unif y Discont.pdf`
+- `Material de estudio/Modelo aleatorio.pdf`
+- `Material de estudio/Ejemplo Modelo con Dscto.pdf`
 - `Material de estudio/Modelos de Pronósticos.pdf`
 - `Material de estudio/Pronóstico.xlsx`
 - `Material de estudio/5. Modelos de redes.pdf`
+- `Parciales/Segundo/Segundo Parcial Práctico_ Revisión del intento.pdf`
+- `Material de estudio/Repaso parcial IOP.pdf`
 - Finales e imágenes relevadas del `23/02/2026`
 
 Quedaron excluidos de forma explícita: **CPM**, **PERT**, **Transporte** y **Transbordo**.
@@ -80,6 +84,7 @@ Los ejercicios son **generados desde pools parametrizados**, no son pantallas fi
 - `glpk.js` se usa como verificador paralelo en PL y sensibilidad, sin reemplazar la lógica pedagógica.
 - `@dagrejs/graphlib` se usa como contraste de robustez para Dijkstra y árbol mínimo.
 - Las respuestas decimales aceptan tolerancia de `±0.05`.
+- Los pools de inventarios y pronósticos incorporan ejemplos numéricos extraídos de parciales, repaso y planilla `Pronóstico.xlsx`.
 
 ## 💾 Persistencia
 

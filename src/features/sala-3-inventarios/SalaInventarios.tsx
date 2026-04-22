@@ -11,6 +11,7 @@ import {
   optimalLotSize,
   optimalTotalCost,
   randomDemandBreakdown,
+  singlePeriodDemandBreakdown,
 } from './inventariosEngine'
 
 const modelLabels = {
@@ -74,6 +75,7 @@ export function SalaInventarios({ disabled, gameMode, onResolve }: RoomComponent
   const totalCost = optimalTotalCost(bundle.calculation)
   const breakdown = buildInventoryBreakdown(bundle.calculation)
   const randomDemand = randomDemandBreakdown(bundle.randomDemandExercise)
+  const singlePeriodDemand = singlePeriodDemandBreakdown(bundle.singlePeriodExercise)
   const discountPlan = evaluateQuantityDiscount(bundle.quantityDiscountExercise)
 
   const discountOptions = discountPlan.candidates.map((candidate) => (
@@ -178,6 +180,26 @@ export function SalaInventarios({ disabled, gameMode, onResolve }: RoomComponent
       ],
     },
     {
+      type: 'number',
+      label: 'Demanda aleatoria: pedido único',
+      prompt: bundle.singlePeriodExercise.prompt,
+      hints: [
+        'Calculá la razón crítica Cf / (Ce + Cf).',
+        'Elegí el primer nivel de demanda cuya probabilidad acumulada iguale o supere esa razón.',
+      ],
+      expected: singlePeriodDemand.optimalOrder,
+      success: 'Pedido único correcto para demanda discreta incierta.',
+      failure: `La cantidad óptima era ${formatNumber(singlePeriodDemand.optimalOrder)}.`,
+      formula: 'elegir q* tal que F(q-1) < Cf/(Ce+Cf) <= F(q)',
+      sourceId: bundle.singlePeriodExercise.sourceId,
+      highlights: [
+        `Ce = ${formatNumber(singlePeriodDemand.excessCost)}`,
+        `Cf = ${formatNumber(singlePeriodDemand.shortageCost)}`,
+        `Cf/(Ce+Cf) = ${formatNumber(singlePeriodDemand.criticalRatio)}`,
+        ...singlePeriodDemand.cumulativeRows.map((row) => `F(${row.demand}) = ${formatNumber(row.cumulativeProbability)}`),
+      ],
+    },
+    {
       type: 'choice',
       label: 'Descuento por cantidad: mejor tramo',
       prompt: `${bundle.quantityDiscountExercise.prompt} D = ${bundle.quantityDiscountExercise.annualDemand}, S = ${bundle.quantityDiscountExercise.orderCost}, i = ${bundle.quantityDiscountExercise.carryingRate}.`,
@@ -246,7 +268,7 @@ export function SalaInventarios({ disabled, gameMode, onResolve }: RoomComponent
         <span className="eyebrow">Inventarios</span>
         <h2>Detectar modelo primero, calcular después</h2>
         <p>
-          Esta sala ahora cubre los seis frentes de práctica más útiles: identificación, Q*, costo total, ruptura, demanda aleatoria y descuentos por cantidad.
+          Esta sala cubre los frentes de práctica más útiles: identificación, Q*, costo total, ruptura, punto de pedido, pedido único con demanda aleatoria y descuentos por cantidad.
         </p>
       </header>
 
@@ -371,6 +393,11 @@ export function SalaInventarios({ disabled, gameMode, onResolve }: RoomComponent
               <td>Demanda aleatoria</td>
               <td>d={bundle.randomDemandExercise.meanDailyDemand}, sigma={bundle.randomDemandExercise.stdDailyDemand}, L={bundle.randomDemandExercise.leadTimeDays}, z={bundle.randomDemandExercise.zValue}</td>
               <td>R esperado: {formatNumber(randomDemand.reorderPoint)}</td>
+            </tr>
+            <tr>
+              <td>Pedido único</td>
+              <td>Ce={formatNumber(singlePeriodDemand.excessCost)}, Cf={formatNumber(singlePeriodDemand.shortageCost)}</td>
+              <td>q* esperado: {formatNumber(singlePeriodDemand.optimalOrder)}</td>
             </tr>
             <tr>
               <td>Descuento por cantidad</td>

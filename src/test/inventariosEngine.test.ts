@@ -8,6 +8,8 @@ import {
   optimalLotSize,
   optimalTotalCost,
   reorderPointRandomDemand,
+  singlePeriodDemandBreakdown,
+  singlePeriodOptimalOrder,
 } from '../features/sala-3-inventarios/inventariosEngine'
 
 describe('inventariosEngine', () => {
@@ -105,6 +107,28 @@ describe('inventariosEngine', () => {
 
     expect(plan.minQty).toBe(700)
     expect(plan.unitCost).toBe(42)
+  })
+
+  it('resuelve pedido único con demanda aleatoria discreta', () => {
+    const exercise = {
+      prompt: 'Diarios',
+      purchaseCost: 25,
+      salePrice: 35,
+      demandDistribution: [
+        { demand: 50, probability: 0.25 },
+        { demand: 55, probability: 0.20 },
+        { demand: 60, probability: 0.25 },
+        { demand: 65, probability: 0.10 },
+        { demand: 70, probability: 0.20 },
+      ],
+      sourceId: 'inventarios-aleatorio',
+    }
+
+    const breakdown = singlePeriodDemandBreakdown(exercise)
+
+    expect(breakdown.criticalRatio).toBe(0.29)
+    expect(breakdown.cumulativeRows.map((row) => row.cumulativeProbability)).toEqual([0.25, 0.45, 0.7, 0.8, 1])
+    expect(singlePeriodOptimalOrder(exercise)).toBe(55)
   })
 
   it('calcula desglose para descuento por cantidad con costo de compra', () => {
@@ -230,6 +254,7 @@ describe('inventariosEngine', () => {
 
     expect(bundle.classification.prompt).not.toBe(bundle.calculation.prompt)
     expect(bundle.randomDemandExercise.meanDailyDemand).toBeGreaterThan(0)
+    expect(bundle.singlePeriodExercise.demandDistribution.length).toBeGreaterThan(1)
     expect(bundle.quantityDiscountExercise.tiers.length).toBeGreaterThan(1)
 
     randomSpy

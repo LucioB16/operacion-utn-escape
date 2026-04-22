@@ -192,6 +192,34 @@ const bundles: ForecastBundle[] = [
       [165, 198, 232, 264],
     ],
   },
+  {
+    weightedSeries: [3600, 3400, 3500, 3700, 3400, 3300, 3850, 3600, 3500, 3250, 3400, 3300],
+    weights: [0.2, 0.3, 0.5],
+    smoothingSeries: [3600, 3400, 3500, 3700, 3400, 3300, 3850, 3600, 3500, 3250, 3400, 3300],
+    alpha: 0.7,
+    initialForecast: 2600,
+    movingAverageSeries: [30, 32, 30, 39, 33, 34, 34, 38, 36, 39, 30, 36],
+    movingWindow: 3,
+    seasonalMatrix: [
+      [10, 70, 120, 30],
+      [11, 65, 135, 38],
+      [12, 72, 155, 50],
+    ],
+  },
+  {
+    weightedSeries: [185.72, 167.84, 205.11, 210.36, 255.57, 261.19],
+    weights: [0.2, 0.3, 0.5],
+    smoothingSeries: [185.72, 167.84, 205.11, 210.36, 255.57, 261.19],
+    alpha: 0.4,
+    initialForecast: 185.72,
+    movingAverageSeries: [205, 251, 304, 295, 352, 335, 320, 350, 365, 350, 385, 410],
+    movingWindow: 4,
+    seasonalMatrix: [
+      [25, 28, 35, 50],
+      [60, 60, 40, 35],
+      [30, 25, 25, 20],
+    ],
+  },
 ]
 
 export function createForecastBundle() {

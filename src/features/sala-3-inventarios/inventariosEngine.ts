@@ -49,6 +49,19 @@ export interface QuantityDiscountExercise {
   sourceId: string
 }
 
+export interface SinglePeriodDemandPoint {
+  demand: number
+  probability: number
+}
+
+export interface SinglePeriodDemandExercise {
+  prompt: string
+  purchaseCost: number
+  salePrice: number
+  demandDistribution: SinglePeriodDemandPoint[]
+  sourceId: string
+}
+
 export interface QuantityDiscountCandidate {
   minQty: number
   unitCost: number
@@ -71,6 +84,7 @@ export interface InventoryBundle {
     answer: 'Conviene analizar ruptura' | 'No conviene ruptura'
   }
   randomDemandExercise: RandomDemandExercise
+  singlePeriodExercise: SinglePeriodDemandExercise
   quantityDiscountExercise: QuantityDiscountExercise
 }
 
@@ -95,6 +109,14 @@ export interface RandomDemandBreakdown {
   totalRelevantCost: number
 }
 
+export interface SinglePeriodDemandBreakdown {
+  excessCost: number
+  shortageCost: number
+  criticalRatio: number
+  optimalOrder: number
+  cumulativeRows: Array<SinglePeriodDemandPoint & { cumulativeProbability: number }>
+}
+
 const DEFAULT_CARRYING_RATE = 0.25
 
 const inventoryScenarios: InventoryScenario[] = [
@@ -113,6 +135,22 @@ const inventoryScenarios: InventoryScenario[] = [
     orderCost: 2200,
     holdingCost: 9,
     sourceId: 'inventarios-cep',
+  },
+  {
+    model: 'sin-ruptura',
+    prompt: 'Una autopartista debe entregar 48.000 unidades anuales en forma continua; preparar cada lote cuesta 2.000 y mantener stock combina seguro anual y vigilancia trimestral.',
+    demand: 48000,
+    orderCost: 2000,
+    holdingCost: 40,
+    sourceId: 'parcial-repaso-inventarios',
+  },
+  {
+    model: 'sin-ruptura',
+    prompt: 'Una fábrica de pastas consume 109.500 kg anuales de harina, con costo fijo por pedido y costo anual de almacenamiento por kilo.',
+    demand: 109500,
+    orderCost: 1400,
+    holdingCost: 140,
+    sourceId: 'parcial-segundo-2021',
   },
   {
     model: 'con-ruptura',
@@ -153,6 +191,16 @@ const inventoryScenarios: InventoryScenario[] = [
     sourceId: 'inventarios-reab',
   },
   {
+    model: 'reabastecimiento-uniforme',
+    prompt: 'El proveedor completa cada lote con entregas parciales diarias; la tasa de ingreso supera a la tasa de consumo.',
+    demand: 109500,
+    orderCost: 1000,
+    holdingCost: 240,
+    productionRate: 219000,
+    demandRate: 109500,
+    sourceId: 'parcial-segundo-2021',
+  },
+  {
     model: 'demanda-aleatoria',
     prompt: 'La demanda diaria es incierta durante el lead time y necesitás punto de pedido con stock de seguridad.',
     demand: 9500,
@@ -177,6 +225,34 @@ const inventoryScenarios: InventoryScenario[] = [
       { minQty: 700, unitCost: 42 },
     ],
     sourceId: 'inventarios-cep',
+  },
+  {
+    model: 'descuento-cantidad',
+    prompt: 'El ejemplo de descuento por cantidad exige comparar costo total para el Q factible y las cantidades mínimas de cada tramo.',
+    demand: 10000,
+    orderCost: 300,
+    holdingCost: 15,
+    carryingRate: 0.15,
+    discountTiers: [
+      { minQty: 1, unitCost: 100 },
+      { minQty: 500, unitCost: 90 },
+      { minQty: 1000, unitCost: 85 },
+    ],
+    sourceId: 'inventarios-descuento-ejemplo',
+  },
+  {
+    model: 'descuento-cantidad',
+    prompt: 'Un restaurante compra vino espumante con precios por tramo y costo de capital más seguro de mercadería.',
+    demand: 15000,
+    orderCost: 100,
+    holdingCost: 18.6,
+    carryingRate: 0.31,
+    discountTiers: [
+      { minQty: 1, unitCost: 60 },
+      { minQty: 2000, unitCost: 58 },
+      { minQty: 4000, unitCost: 57 },
+    ],
+    sourceId: 'inventarios-reab',
   },
 ]
 
@@ -244,6 +320,59 @@ const quantityDiscountExercises: QuantityDiscountExercise[] = [
       { minQty: 600, unitCost: 46 },
     ],
     sourceId: 'inventarios-cep',
+  },
+  {
+    prompt: 'Usá el ejemplo de descuento por cantidad del material: N = 10.000, S = 300 y mantenimiento del 15% del precio.',
+    annualDemand: 10000,
+    orderCost: 300,
+    carryingRate: 0.15,
+    tiers: [
+      { minQty: 1, unitCost: 100 },
+      { minQty: 500, unitCost: 90 },
+      { minQty: 1000, unitCost: 85 },
+    ],
+    sourceId: 'inventarios-descuento-ejemplo',
+  },
+  {
+    prompt: 'Para el caso del restaurante, compará los tramos de vino espumante y elegí el de menor costo total.',
+    annualDemand: 15000,
+    orderCost: 100,
+    carryingRate: 0.31,
+    tiers: [
+      { minQty: 1, unitCost: 60 },
+      { minQty: 2000, unitCost: 58 },
+      { minQty: 4000, unitCost: 57 },
+    ],
+    sourceId: 'inventarios-reab',
+  },
+]
+
+const singlePeriodDemandExercises: SinglePeriodDemandExercise[] = [
+  {
+    prompt: 'Ignacio compra diarios a $25, los vende a $35 y no puede reponer durante el día. Con la distribución dada, calculá cuántos diarios conviene comprar.',
+    purchaseCost: 25,
+    salePrice: 35,
+    demandDistribution: [
+      { demand: 50, probability: 0.25 },
+      { demand: 55, probability: 0.20 },
+      { demand: 60, probability: 0.25 },
+      { demand: 65, probability: 0.10 },
+      { demand: 70, probability: 0.20 },
+    ],
+    sourceId: 'inventarios-aleatorio',
+  },
+  {
+    prompt: 'Un kiosco vende packs con compra única diaria: compra a $40, vende a $55 y descarta sobrantes. Elegí el pedido óptimo según distribución discreta.',
+    purchaseCost: 40,
+    salePrice: 55,
+    demandDistribution: [
+      { demand: 30, probability: 0.15 },
+      { demand: 35, probability: 0.25 },
+      { demand: 40, probability: 0.30 },
+      { demand: 45, probability: 0.20 },
+      { demand: 50, probability: 0.10 },
+    ],
+    sourceId: 'inventarios-aleatorio',
   },
 ]
 
@@ -314,6 +443,36 @@ export function randomDemandBreakdown(exercise: RandomDemandExercise): RandomDem
 
 export function reorderPointRandomDemand(exercise: RandomDemandExercise) {
   return randomDemandBreakdown(exercise).reorderPoint
+}
+
+export function singlePeriodDemandBreakdown(exercise: SinglePeriodDemandExercise): SinglePeriodDemandBreakdown {
+  const orderedDistribution = [...exercise.demandDistribution].sort((left, right) => left.demand - right.demand)
+  const excessCost = round2(exercise.purchaseCost)
+  const shortageCost = round2(exercise.salePrice - exercise.purchaseCost)
+  const criticalRatio = round2(shortageCost / (excessCost + shortageCost))
+  let cumulative = 0
+  const cumulativeRows = orderedDistribution.map((point) => {
+    cumulative = round2(cumulative + point.probability)
+
+    return {
+      ...point,
+      cumulativeProbability: cumulative,
+    }
+  })
+
+  const optimalRow = cumulativeRows.find((row) => row.cumulativeProbability >= criticalRatio) ?? cumulativeRows.at(-1)
+
+  return {
+    excessCost,
+    shortageCost,
+    criticalRatio,
+    optimalOrder: optimalRow?.demand ?? 0,
+    cumulativeRows,
+  }
+}
+
+export function singlePeriodOptimalOrder(exercise: SinglePeriodDemandExercise) {
+  return singlePeriodDemandBreakdown(exercise).optimalOrder
 }
 
 export function evaluateQuantityDiscount(exercise: QuantityDiscountExercise): QuantityDiscountPlan {
@@ -497,6 +656,7 @@ export function createInventoryBundle(): InventoryBundle {
     calculation,
     ruptureDecision: structuredClone(rupturePrompts[Math.floor(Math.random() * rupturePrompts.length)]),
     randomDemandExercise: structuredClone(randomDemandExercises[Math.floor(Math.random() * randomDemandExercises.length)]),
+    singlePeriodExercise: structuredClone(singlePeriodDemandExercises[Math.floor(Math.random() * singlePeriodDemandExercises.length)]),
     quantityDiscountExercise: structuredClone(quantityDiscountExercises[Math.floor(Math.random() * quantityDiscountExercises.length)]),
   }
 }

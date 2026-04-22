@@ -55,6 +55,10 @@ describe('SalaInventarios', () => {
     await user.type(screen.getByPlaceholderText(/escribí el valor/i), '244.32')
     await user.click(screen.getByRole('button', { name: /validar respuesta/i }))
 
+    await user.clear(screen.getByPlaceholderText(/escribí el valor/i))
+    await user.type(screen.getByPlaceholderText(/escribí el valor/i), '55')
+    await user.click(screen.getByRole('button', { name: /validar respuesta/i }))
+
     await user.click(screen.getByRole('button', { name: /desde 700 u\. \(c=42\)/i }))
     await user.click(screen.getByRole('button', { name: /validar respuesta/i }))
 
