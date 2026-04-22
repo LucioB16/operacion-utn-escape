@@ -1,8 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FeedbackMessage, RoomComponentProps, RoomResolution } from '../../game/core/types'
 import { createScoreDelta } from '../../game/core/scoring'
 import { FormulaTooltip } from '../shared/FormulaTooltip'
-import { createPLScenario, feasibleVertices, getVertexByLabel, objectiveValue } from './plGraficaEngine'
+import {
+  createPLScenario,
+  feasibleVertices,
+  getVertexByLabel,
+  objectiveValue,
+  verifyPLScenarioWithGlpk,
+  type PLExternalVerification,
+} from './plGraficaEngine'
 
 function toResolution(roomId: RoomResolution['roomId'], stepLabel: string, correct: boolean, completed: boolean, feedback: FeedbackMessage, gameMode: RoomComponentProps['gameMode']): RoomResolution {
   return {
@@ -28,6 +35,27 @@ export function SalaPLGrafica({ disabled, gameMode, onResolve }: RoomComponentPr
   const [stepIndex, setStepIndex] = useState(0)
   const [selectedValue, setSelectedValue] = useState('')
   const [feedback, setFeedback] = useState<FeedbackMessage | null>(null)
+  const [externalVerification, setExternalVerification] = useState<PLExternalVerification | null>(null)
+
+  useEffect(() => {
+    let active = true
+
+    verifyPLScenarioWithGlpk(scenario)
+      .then((verification) => {
+        if (active) {
+          setExternalVerification(verification)
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setExternalVerification(null)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [scenario])
 
   const polygonPoints = feasibleVertices(scenario)
     .map((vertex) => `${toCanvasX(vertex.x)},${toCanvasY(vertex.y)}`)
@@ -146,6 +174,14 @@ export function SalaPLGrafica({ disabled, gameMode, onResolve }: RoomComponentPr
             <span className="legend-item">
               <span className="legend-swatch legend-vertex" />
               Vértices evaluables
+            </span>
+          </div>
+
+          <div className="chip-row">
+            <span className="chip">
+              Verificador GLPK: {externalVerification?.matchesScenario
+                ? `OK, Z = ${externalVerification.objectiveValue.toFixed(2)}`
+                : 'calculando'}
             </span>
           </div>
         </article>

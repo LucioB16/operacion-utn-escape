@@ -1,3 +1,5 @@
+import { Graph, alg } from '@dagrejs/graphlib'
+
 export interface NetworkNode {
   id: string
   x: number
@@ -36,6 +38,15 @@ export interface DijkstraResult {
   cost: number
   path: string[]
   rows: DijkstraTraceRow[]
+}
+
+export interface GraphlibNetworkVerification {
+  dijkstraCost: number
+  dijkstraPath: string[]
+  primCost: number
+  primEdgeIds: string[]
+  matchesDijkstra: boolean
+  matchesMst: boolean
 }
 
 class DisjointSet {
@@ -204,6 +215,49 @@ export function dijkstraCost(scenario: NetworkScenario) {
 
 export function formatPath(path: string[]) {
   return path.join(' -> ')
+}
+
+function buildGraphlibGraph(scenario: NetworkScenario) {
+  const graph = new Graph({ directed: false })
+
+  scenario.nodes.forEach((node) => graph.setNode(node.id))
+  scenario.edges.forEach((edge) => {
+    graph.setEdge(edge.from, edge.to, { id: edge.id, weight: edge.weight })
+  })
+
+  return graph
+}
+
+export function verifyNetworkWithGraphlib(scenario: NetworkScenario): GraphlibNetworkVerification {
+  const graph = buildGraphlibGraph(scenario)
+  const weight = (edge: { v: string; w: string; name?: string }) => graph.edge(edge).weight
+  const ownDijkstra = dijkstraTrace(scenario)
+  const distances = alg.dijkstra(graph, scenario.origin, weight, (nodeId) => graph.nodeEdges(nodeId) ?? [])
+
+  const dijkstraPath: string[] = []
+  let cursor: string | undefined = scenario.target
+
+  while (cursor) {
+    dijkstraPath.unshift(cursor)
+    cursor = distances[cursor]?.predecessor
+  }
+
+  const primTree = alg.prim(graph, weight)
+  const primEdgeIds = primTree.edges().map((edge) => graph.edge(edge).id).sort()
+  const ownMst = minimumSpanningTree(scenario.edges, scenario.nodes)
+  const ownMstIds = ownMst.map((edge) => edge.id).sort()
+  const primCost = primTree.edges().reduce((total, edge) => total + graph.edge(edge).weight, 0)
+  const ownMstCost = selectedWeight(ownMst)
+
+  return {
+    dijkstraCost: distances[scenario.target]?.distance ?? Number.POSITIVE_INFINITY,
+    dijkstraPath,
+    primCost,
+    primEdgeIds,
+    matchesDijkstra: (distances[scenario.target]?.distance ?? Number.POSITIVE_INFINITY) === ownDijkstra.cost
+      && formatPath(dijkstraPath) === formatPath(ownDijkstra.path),
+    matchesMst: primCost === ownMstCost && primEdgeIds.join('|') === ownMstIds.join('|'),
+  }
 }
 
 const scenarios: NetworkScenario[] = [

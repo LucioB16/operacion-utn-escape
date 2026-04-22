@@ -10,6 +10,7 @@ import {
   isSpanningTree,
   minimumSpanningTreeTrace,
   selectedWeight,
+  verifyNetworkWithGraphlib,
 } from './redesEngine'
 
 function buildResolution(
@@ -44,6 +45,7 @@ export function SalaRedes({ disabled, gameMode, onResolve }: RoomComponentProps)
   const dijkstra = dijkstraTrace(scenario)
   const shortestPath = formatPath(dijkstra.path)
   const pathOptions = scenario.shortestPathOptions.map((path) => formatPath(path))
+  const externalVerification = verifyNetworkWithGraphlib(scenario)
 
   const toggleEdge = (edgeId: string) => {
     if (disabled || stepIndex !== 0) {
@@ -274,6 +276,9 @@ export function SalaRedes({ disabled, gameMode, onResolve }: RoomComponentProps)
           <span className="chip">Aristas elegidas: {selectedEdgeIds.length}</span>
           <span className="chip">Costo actual: {selectedWeight(selectedEdges)}</span>
           <span className="chip">Costo óptimo de ruta: {dijkstra.cost}</span>
+          <span className="chip">
+            Verificador graphlib: {externalVerification.matchesDijkstra && externalVerification.matchesMst ? 'OK' : 'revisar'}
+          </span>
         </div>
 
         <FormulaTooltip

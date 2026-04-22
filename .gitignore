@@ -10,7 +10,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.vercel
 coverage
+reports
 *.local
 
 # Editor directories and files

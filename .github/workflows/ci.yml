@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-coverage:
+    name: Build, tests y cobertura
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Preparar Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Instalar dependencias
+        run: bun install --frozen-lockfile
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Build
+        run: bun run build
+
+      - name: Tests con cobertura
+        run: bun run test:ci
+
+      - name: Resumen legible en GitHub
+        if: always()
+        run: node scripts/write-github-summary.mjs
+
+      - name: Publicar reportes como artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-ci
+          path: |
+            reports/
+            coverage/
+          if-no-files-found: ignore

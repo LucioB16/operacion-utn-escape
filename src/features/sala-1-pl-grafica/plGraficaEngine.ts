@@ -1,3 +1,5 @@
+import type { LP, Options, Result } from 'glpk.js'
+
 export interface PLVertex {
   label: string
   x: number
@@ -27,6 +29,27 @@ export interface PLScenario {
   dualAnswer: string
   sourceId: string
 }
+
+export interface PLExternalVerification {
+  status: number
+  objectiveValue: number
+  variables: {
+    x: number
+    y: number
+  }
+  expectedObjectiveValue: number
+  matchesScenario: boolean
+}
+
+interface GlpkLike {
+  GLP_MAX: number
+  GLP_UP: number
+  GLP_LO: number
+  GLP_MSG_OFF: number
+  solve: (lp: LP, options?: number | Options) => Result | Promise<Result>
+}
+
+export type GlpkFactory = () => Promise<GlpkLike>
 
 const scenarios: PLScenario[] = [
   {
@@ -147,4 +170,54 @@ export function feasibleVertices(scenario: PLScenario) {
   return scenario.feasibleOrder
     .map((label) => getVertexByLabel(scenario, label))
     .filter((vertex): vertex is PLVertex => Boolean(vertex))
+}
+
+async function createBrowserGlpk(): Promise<GlpkLike> {
+  const { default: GLPKFactory } = await import('glpk.js')
+  return GLPKFactory()
+}
+
+export async function verifyPLScenarioWithGlpk(
+  scenario: PLScenario,
+  createGlpk: GlpkFactory = createBrowserGlpk,
+): Promise<PLExternalVerification> {
+  const glpk = await createGlpk()
+  const lp: LP = {
+    name: scenario.title,
+    objective: {
+      direction: glpk.GLP_MAX,
+      name: 'Z',
+      vars: [
+        { name: 'x', coef: scenario.objective.x },
+        { name: 'y', coef: scenario.objective.y },
+      ],
+    },
+    subjectTo: scenario.constraints.map((constraint) => ({
+      name: constraint.label,
+      vars: [
+        { name: 'x', coef: constraint.a },
+        { name: 'y', coef: constraint.b },
+      ],
+      bnds: { type: glpk.GLP_UP, ub: constraint.limit, lb: 0 },
+    })),
+    bounds: [
+      { name: 'x', type: glpk.GLP_LO, lb: 0, ub: 0 },
+      { name: 'y', type: glpk.GLP_LO, lb: 0, ub: 0 },
+    ],
+  }
+
+  const result = await glpk.solve(lp, { msglev: glpk.GLP_MSG_OFF })
+  const optimalVertex = getVertexByLabel(scenario, scenario.optimalLabel)
+  const expectedObjectiveValue = optimalVertex ? objectiveValue(optimalVertex, scenario.objective) : Number.NaN
+
+  return {
+    status: result.result.status,
+    objectiveValue: result.result.z,
+    variables: {
+      x: result.result.vars.x ?? 0,
+      y: result.result.vars.y ?? 0,
+    },
+    expectedObjectiveValue,
+    matchesScenario: Math.abs(result.result.z - expectedObjectiveValue) <= 0.05,
+  }
 }

@@ -6,12 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "node ./node_modules/eslint/bin/eslint.js .",
     "preview": "vite preview",
     "test": "node ./node_modules/vitest/vitest.mjs run",
-    "test:coverage": "node ./node_modules/vitest/vitest.mjs run --coverage"
+    "test:coverage": "node ./node_modules/vitest/vitest.mjs run --coverage",
+    "test:ci": "node ./node_modules/vitest/vitest.mjs run --coverage --reporter=verbose --reporter=json --outputFile=reports/vitest-results.json"
   },
   "dependencies": {
+    "@dagrejs/graphlib": "^4.0.1",
+    "glpk.js": "^5.0.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"
   },
