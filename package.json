@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "bun ./node_modules/vite/bin/vite.js",
     "build": "tsc -b && vite build",
     "lint": "node ./node_modules/eslint/bin/eslint.js .",
     "preview": "vite preview",

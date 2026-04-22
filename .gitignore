@@ -13,6 +13,8 @@ dist-ssr
 .vercel
 coverage
 reports
+output/
+.playwright-cli/
 *.local
 
 # Editor directories and files

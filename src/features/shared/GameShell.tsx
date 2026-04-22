@@ -61,7 +61,7 @@ export function GameShell({
   const currentAccuracy = computeAccuracy(gameState.correctAnswers, gameState.incorrectAnswers)
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell phase-${gameState.phase} mode-${gameState.mode}`}>
       <header className="shell-header">
         <div>
           <p className="eyebrow">Operación UTN</p>
@@ -159,7 +159,7 @@ export function GameShell({
           {gameState.phase === 'playing' ? (
             children
           ) : (
-            <section className="status-screen">
+            <section className={`status-screen status-screen--${gameState.phase}`}>
               <h2>{statusCopy.title}</h2>
               <p>{statusCopy.description}</p>
               <div className="status-actions">
