@@ -296,7 +296,7 @@ export function SalaPronosticos({ disabled, gameMode, onResolve }: RoomComponent
         <FormulaTooltip
           title="Checklist de pronóstico"
           formula="promedio móvil / ponderado + suavizado + MAD + x_t + 2.5 × MAD + índices estacionales"
-          sourceLabel="Pronóstico.xlsx + Modelos de Pronósticos.pdf"
+          sourceIds={['pronosticos-xlsx', 'pronosticos-pdf']}
         />
       </article>
 

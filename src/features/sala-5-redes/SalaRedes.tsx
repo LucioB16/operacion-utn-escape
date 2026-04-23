@@ -284,7 +284,7 @@ export function SalaRedes({ disabled, gameMode, onResolve }: RoomComponentProps)
         <FormulaTooltip
           title="Resumen de redes"
           formula="árbol = conecta sin ciclos · AEM = n-1 aristas con costo mínimo · Dijkstra = caminos mínimos desde un origen"
-          sourceLabel="5. Modelos de redes.pdf + final del 23/02/2026"
+          sourceIds={['redes-modelos', 'final-2026-redes']}
         />
       </article>
 

@@ -54,6 +54,7 @@ export interface SourceMapEntry {
   id: string
   label: string
   path: string
+  driveLinks: Array<{ label: string, url: string }>
   topics: string[]
   priority: 'alta' | 'media' | 'baja'
   reason: string

@@ -217,7 +217,7 @@ export function SalaPLGrafica({ disabled, gameMode, onResolve }: RoomComponentPr
           <FormulaTooltip
             title="Criterio del método gráfico"
             formula="1) Identificar región factible  2) Evaluar Z en vértices  3) Elegir el mejor valor"
-            sourceLabel="Temas de Examen.docx + 1. Formulación de modelos.pdf"
+            sourceIds={['temas-examen', 'formulacion-modelos']}
           />
 
           {feedback && (

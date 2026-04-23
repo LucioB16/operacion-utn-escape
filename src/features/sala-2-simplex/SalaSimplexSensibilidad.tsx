@@ -303,7 +303,7 @@ export function SalaSimplexSensibilidad({ disabled, gameMode, onResolve }: RoomC
           <FormulaTooltip
             title="Regla de ingreso y salida"
             formula={scenario.iteration.direction === 'min' ? 'entra el Cj - Zj más negativo y sale el theta positivo mínimo' : 'entra el Cj - Zj positivo más grande y sale el theta positivo mínimo'}
-            sourceLabel="Temas de Examen.docx + Preguntas Teórico.docx"
+            sourceIds={['temas-examen', 'preguntas-teorico']}
           />
         </article>
 
@@ -417,7 +417,7 @@ export function SalaSimplexSensibilidad({ disabled, gameMode, onResolve }: RoomC
           <FormulaTooltip
             title="Cambio de VLD dentro del intervalo"
             formula="x_B nueva = x_B + Δ · B^-1 · e_i ; Z nueva = Z base + precio sombra · Δ"
-            sourceLabel="3. Dualidad y sensibilidad.pdf"
+            sourceIds={['dualidad-sensibilidad']}
           />
         </article>
       </div>

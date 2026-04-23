@@ -115,8 +115,24 @@ export function GameShell({
             {activeSources.map((source) => (
               <article key={source.id} className="source-card">
                 <span className={`priority-tag priority-${source.priority}`}>{source.priority}</span>
-                <strong>{source.label}</strong>
+                <strong>
+                  <a className="source-link" href={source.driveLinks[0]?.url} rel="noreferrer" target="_blank">
+                    {source.label}
+                  </a>
+                </strong>
                 <small>{source.path}</small>
+                {source.driveLinks.length > 1 ? (
+                  <small>
+                    Drive:
+                    {' '}
+                    {source.driveLinks.map((link, index) => (
+                      <span key={link.url}>
+                        <a className="source-link" href={link.url} rel="noreferrer" target="_blank">{link.label}</a>
+                        {index < source.driveLinks.length - 1 ? ' · ' : null}
+                      </span>
+                    ))}
+                  </small>
+                ) : null}
                 <p>{source.reason}</p>
               </article>
             ))}
@@ -125,7 +141,14 @@ export function GameShell({
           <h2>Temas excluidos</h2>
           {excludedSources.map((source) => (
             <article key={source.id} className="source-card source-card--excluded">
-              <strong>{source.label}</strong>
+              <strong>
+                {source.driveLinks.map((link, index) => (
+                  <span key={link.url}>
+                    <a className="source-link" href={link.url} rel="noreferrer" target="_blank">{link.label}</a>
+                    {index < source.driveLinks.length - 1 ? ' · ' : null}
+                  </span>
+                ))}
+              </strong>
               <p>{source.reason}</p>
             </article>
           ))}

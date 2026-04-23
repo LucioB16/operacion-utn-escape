@@ -100,6 +100,20 @@ input:disabled {
   opacity: 0.55;
 }
 
+a {
+  color: inherit;
+}
+
+.source-link {
+  color: var(--cyan-soft);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.source-link:hover {
+  color: var(--cyan);
+}
+
 ::selection {
   background: var(--cyan);
   color: var(--ink);

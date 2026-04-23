@@ -340,7 +340,7 @@ export function SalaInventarios({ disabled, gameMode, onResolve }: RoomComponent
           <FormulaTooltip
             title="Secuencia segura"
             formula="1) Identificar supuestos  2) Elegir modelo  3) Calcular Q*  4) Evaluar costo total y política"
-            sourceLabel="Temas de Examen.docx + Modelos CEP y con Ruptura.pdf"
+            sourceIds={['temas-examen', 'inventarios-cep']}
           />
         </article>
 

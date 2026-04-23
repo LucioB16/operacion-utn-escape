@@ -112,4 +112,77 @@ describe('GameShell', () => {
     expect(screen.getByText('Tiempo agotado')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /reintentar misión/i })).toBeInTheDocument()
   })
+
+  it('renderiza el contenido jugable y el ultimo feedback cuando la fase esta en playing', () => {
+    render(
+      <GameShell
+        activeRoom={rooms[0]}
+        gameState={{
+          ...createInitialGameState('examen'),
+          phase: 'playing',
+          events: [
+            {
+              roomId: 'sala-1',
+              occurredAt: '2026-04-20T13:11:00.000Z',
+              stepLabel: 'Iteracion 1',
+              feedbackTitle: 'Pivot correcto',
+              correct: true,
+              xpDelta: 100,
+              timeDeltaSeconds: 30,
+            },
+          ],
+          lastFeedback: {
+            tone: 'success',
+            title: 'Buen avance',
+            body: 'Elegiste bien la variable que entra.',
+            highlights: ['Cj - Zj maximo', 'theta valido'],
+          },
+        }}
+        rooms={rooms}
+        sourceIndex={sourceIndex}
+        storedHistory={[]}
+        onModeChange={vi.fn()}
+        onStart={vi.fn()}
+        onRestart={vi.fn()}
+      >
+        <div>Contenido en juego</div>
+      </GameShell>,
+    )
+
+    expect(screen.getByText('Contenido en juego')).toBeInTheDocument()
+    expect(screen.getByText('Buen avance')).toBeInTheDocument()
+    expect(screen.getByText('Cj - Zj maximo')).toBeInTheDocument()
+  })
+
+  it('muestra links de Drive para fuentes con multiples documentos', () => {
+    const roomWithExcludedSource: RoomDefinition = {
+      id: 'sala-1',
+      title: 'Sala 1',
+      subtitle: 'Fuente multiple',
+      topic: 'Validacion de links',
+      summary: 'Resumen',
+      sources: ['excluidos-cpm-pert'],
+    }
+
+    render(
+      <GameShell
+        activeRoom={roomWithExcludedSource}
+        gameState={createInitialGameState('examen')}
+        rooms={[roomWithExcludedSource]}
+        sourceIndex={sourceIndex}
+        storedHistory={[]}
+        onModeChange={vi.fn()}
+        onStart={vi.fn()}
+        onRestart={vi.fn()}
+      >
+        <div>Contenido</div>
+      </GameShell>,
+    )
+
+    const cpmLinks = screen.getAllByRole('link', { name: /cpm\.pdf/i })
+    const pertLinks = screen.getAllByRole('link', { name: /pert\.pdf/i })
+
+    expect(cpmLinks.length).toBeGreaterThan(0)
+    expect(pertLinks.length).toBeGreaterThan(0)
+  })
 })
