@@ -18,7 +18,7 @@ const rooms: RoomDefinition[] = [
     subtitle: 'Región Factible Bajo Presión',
     topic: 'Programación lineal gráfica',
     summary: 'Leé restricciones, ubicá la región factible y elegí el vértice óptimo antes de que se cierre la compuerta.',
-    sources: ['temas-examen', 'formulacion-modelos', 'preguntas-teorico'],
+    sources: ['temas-examen', 'preguntas-teorico', 'resumen-iop', 'formulacion-modelos', 'resolucion-problemas', 'casos-guia-iop'],
   },
   {
     id: 'sala-2',
@@ -26,7 +26,7 @@ const rooms: RoomDefinition[] = [
     subtitle: 'El Escape Room del Simplex',
     topic: 'Simplex y sensibilidad',
     summary: 'Detectá la columna llave, la fila puerta, el pivot y cómo cambia Z cuando se mueve el VLD.',
-    sources: ['temas-examen', 'dualidad-sensibilidad', 'preguntas-teorico', 'final-2026-simplex'],
+    sources: ['temas-examen', 'preguntas-teorico', 'dualidad-sensibilidad', 'resolucion-problemas', 'parcial-segundo-compilado', 'final-2026-simplex'],
   },
   {
     id: 'sala-3',
@@ -34,7 +34,7 @@ const rooms: RoomDefinition[] = [
     subtitle: 'Supervivencia en el Almacén',
     topic: 'Inventarios',
     summary: 'Identificá el modelo correcto, calculá Q* y justificá si tolerar ruptura tiene sentido económico.',
-    sources: ['temas-examen', 'inventarios-cep', 'inventarios-reab'],
+    sources: ['temas-examen', 'inventarios-administracion', 'inventarios-cep', 'inventarios-reab', 'inventarios-aleatorio', 'inventarios-descuento-ejemplo', 'parcial-segundo-2021', 'parcial-segundo-hechos'],
   },
   {
     id: 'sala-4',
@@ -42,7 +42,7 @@ const rooms: RoomDefinition[] = [
     subtitle: 'El Oráculo de la Demanda',
     topic: 'Pronósticos',
     summary: 'Combiná promedios, suavizado, MAD y estacionalidad para salir de la niebla de demanda.',
-    sources: ['temas-examen', 'pronosticos-pdf', 'pronosticos-xlsx', 'final-2026-pronosticos'],
+    sources: ['temas-examen', 'resumen-iop', 'pronosticos-pdf', 'pronosticos-xlsx', 'notebooklm-guia', 'notebooklm-guia-pdf', 'final-2026-pronosticos', 'final-2026-resolucion-03', 'final-2026-resolucion-34', 'final-2026-resolucion-45'],
   },
   {
     id: 'sala-5',
@@ -50,7 +50,7 @@ const rooms: RoomDefinition[] = [
     subtitle: 'Conquistador de Redes',
     topic: 'Redes',
     summary: 'Armá un árbol de expansión mínima y cerrá la ruta óptima con Dijkstra.',
-    sources: ['temas-examen', 'redes-modelos', 'final-2026-redes', 'preguntas-teorico'],
+    sources: ['temas-examen', 'preguntas-teorico', 'redes-modelos', 'redes-guia-parte-1', 'redes-guia-parte-2', 'redes-arbol-camino', 'redes-flujo', 'final-2026-redes'],
   },
 ]
 

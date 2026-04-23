@@ -55,6 +55,7 @@ export function GameShell({
 }: GameShellProps) {
   const statusCopy = buildStatusCopy(gameState)
   const activeSources = activeRoom.sources.map((sourceId) => sourceIndex[sourceId]).filter(Boolean)
+  const corpusSources = Object.values(sourceIndex).filter((source) => !source.excluded)
   const excludedSources = Object.values(sourceIndex).filter((source) => source.excluded)
   const completionRatio = `${gameState.completedRoomIds.length}/${rooms.length}`
   const historyStats = buildHistoryStats(storedHistory)
@@ -152,6 +153,23 @@ export function GameShell({
               <p>{source.reason}</p>
             </article>
           ))}
+
+          <h2>Corpus completo relevado</h2>
+          <details className="corpus-summary">
+            <summary>{corpusSources.length} fuentes accesibles en Drive</summary>
+            <div className="source-list">
+              {corpusSources.map((source) => (
+                <article key={`catalog-${source.id}`} className="source-card">
+                  <strong>
+                    <a className="source-link" href={source.driveLinks[0]?.url} rel="noreferrer" target="_blank">
+                      {source.label}
+                    </a>
+                  </strong>
+                  <small>{source.path}</small>
+                </article>
+              ))}
+            </div>
+          </details>
         </aside>
 
         <section className="playfield-card">

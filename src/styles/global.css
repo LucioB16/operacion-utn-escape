@@ -450,6 +450,29 @@ a {
   background: rgba(147, 0, 10, 0.11);
 }
 
+.corpus-summary {
+  border: 1px solid var(--line-soft);
+  background: rgba(2, 16, 20, 0.52);
+}
+
+.corpus-summary > summary {
+  padding: 10px 12px;
+  cursor: pointer;
+  color: var(--cyan-soft);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.corpus-summary[open] > summary {
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.corpus-summary .source-list {
+  padding: 10px;
+}
+
 .priority-tag {
   display: inline-flex;
   margin-bottom: 8px;
