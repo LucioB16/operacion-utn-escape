@@ -1,20 +1,25 @@
 # Operación UTN: El Escape de la Incertidumbre
 
-![CI](https://github.com/LucioB16/operacion-utn-escape/actions/workflows/ci.yml/badge.svg)
-![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=111)
-![TypeScript](https://img.shields.io/badge/TypeScript-6-3178c6?logo=typescript&logoColor=fff)
-![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=fff)
-![Vitest](https://img.shields.io/badge/tests-Vitest-6e9f18?logo=vitest&logoColor=fff)
-![Storage](https://img.shields.io/badge/storage-localStorage_only-00b894)
-[![Deploy](https://img.shields.io/badge/deploy-Vercel-black?logo=vercel)](https://operacion-utn-escape.vercel.app)
+**Cinco salas para practicar Investigación Operativa con decisiones, cálculos y feedback inmediato.**
 
-🎮 Juego de navegador para preparar el final de **Investigación Operativa** con foco práctico, ritmo de examen y feedback matemático inmediato.
+Juego de navegador orientado al examen final: combina entrenamiento libre, partidas con tiempo y ejercicios de programación lineal, Simplex, inventarios, pronósticos y redes. Cada intento se guarda localmente en tu navegador.
 
-🌐 **Deploy:** [operacion-utn-escape.vercel.app](https://operacion-utn-escape.vercel.app)
+**[Jugar ahora](https://operacion-utn-escape.vercel.app)** · [Explorar las salas](#salas) · [Ver desarrollo](#desarrollo)
 
-El proyecto está basado en el corpus local de `C:\Users\lucio\repos\IOP` y mantiene el criterio de diseño detectado en los materiales: **80% resolución práctica / 20% teoría aplicada**.
+[![CI](https://github.com/LucioB16/operacion-utn-escape/actions/workflows/ci.yml/badge.svg)](https://github.com/LucioB16/operacion-utn-escape/actions/workflows/ci.yml)
+[![React + TypeScript](https://img.shields.io/badge/React-TypeScript-374f68)](package.json)
 
-## 🚀 Estado actual
+> [!NOTE]
+> El corpus de estudio original proviene de materiales locales externos a este repositorio. El juego prioriza aproximadamente un **80 % de resolución práctica y 20 % de teoría aplicada**, según esos materiales; no incluye ese workspace completo.
+
+## Desarrollo
+
+```bash
+bun install
+bun run dev
+```
+
+## Estado actual
 
 - 🧩 `5` salas secuenciales jugables.
 - ⏱️ Modo examen con `15` minutos, XP, bonus y penalizaciones.
@@ -25,7 +30,7 @@ El proyecto está basado en el corpus local de `C:\Users\lucio\repos\IOP` y mant
 - 🔎 Verificación externa con `glpk.js` para PL/sensibilidad y `@dagrejs/graphlib` para redes.
 - ✅ CI con lint, build, coverage y tabla legible de tests en GitHub Actions.
 
-## 🧭 Salas
+## Salas
 
 | Sala | Tema | Qué practicás |
 |---|---|---|
@@ -35,7 +40,7 @@ El proyecto está basado en el corpus local de `C:\Users\lucio\repos\IOP` y mant
 | 4 | Pronósticos | promedio móvil, ponderado, suavizado, errores, `MAD`, estacionalidad |
 | 5 | Redes | árbol, AEM, Kruskal, Dijkstra, camino de valor mínimo |
 
-## 📚 Corpus priorizado
+## Corpus de estudio
 
 Se priorizaron fuentes del workspace alineadas al examen:
 
@@ -56,7 +61,7 @@ Se priorizaron fuentes del workspace alineadas al examen:
 
 Quedaron excluidos de forma explícita: **CPM**, **PERT**, **Transporte** y **Transbordo**.
 
-## 🧱 Arquitectura
+## Arquitectura
 
 ```text
 src/
@@ -76,7 +81,7 @@ src/
 
 La lógica matemática vive en funciones puras TypeScript, separada de React. La UI consume motores de dominio, validadores y generadores, lo que deja margen para sumar Three.js o visualizaciones 3D sin reescribir el núcleo.
 
-## 🧮 Ejercicios y validación
+## Ejercicios y validación
 
 Los ejercicios son **generados desde pools parametrizados**, no son pantallas fijas hardcodeadas. Cada sala selecciona escenarios desde datos representativos del corpus y resuelve con funciones propias del proyecto.
 
@@ -86,7 +91,7 @@ Los ejercicios son **generados desde pools parametrizados**, no son pantallas fi
 - Las respuestas decimales aceptan tolerancia de `±0.05`.
 - Los pools de inventarios y pronósticos incorporan ejemplos numéricos extraídos de parciales, repaso y planilla `Pronóstico.xlsx`.
 
-## 💾 Persistencia
+## Persistencia local
 
 La persistencia es local y simple de hostear gratis:
 
@@ -97,14 +102,7 @@ La persistencia es local y simple de hostear gratis:
 - Sin base cloud.
 - Sin ranking global entre usuarios.
 
-## 🛠️ Desarrollo
-
-```bash
-bun install
-bun run dev
-```
-
-## 🧪 Tests y cobertura
+## Tests y cobertura
 
 ```bash
 bun run lint
@@ -121,7 +119,7 @@ node scripts/write-github-summary.mjs
 
 El workflow `.github/workflows/ci.yml` ejecuta `lint`, `build`, `test:ci`, sube artifacts de `coverage/` y escribe una tabla de tests directamente en el resumen de GitHub Actions.
 
-## 🌐 Deploy gratis
+## Despliegue
 
 La app está publicada gratis en Vercel:
 
@@ -136,7 +134,7 @@ bun run build
 
 Vercel detecta Vite automáticamente y sirve `dist/`. No requiere variables de entorno ni servicios externos.
 
-## 📌 Roadmap corto
+## Roadmap
 
 - Sumar más variantes numéricas por sala.
 - Profundizar explicación visual paso a paso en Simplex.
